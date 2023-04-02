@@ -1,4 +1,4 @@
-# GoogleImageWebScraper by Rokawoo https://rokawoo.neocities.org/
+# ImageWebScraperForDiscordWebhook-Local by Rokawoo https://rokawoo.neocities.org/
 Webscraper for google images.
 
 This Webscraper will both send messages to a discord webhook and write to a local file the most recent search.
