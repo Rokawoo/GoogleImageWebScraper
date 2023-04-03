@@ -96,7 +96,7 @@ while bool_retry == 'on':
     img_tags = soup.find_all('img')
 
     # Get the webhook URL from an environment variable + start message
-    webhook_url = os.environ.get('DISCORD_WEBHOOK_URL')
+    webhook_url = '[PUT DISCORD WEBHOOK URL HERE]'
     webhook_content = f"For '{search_term}' from index {start} to {end}, there are {len(img_tags)} results. Here are {index_diffrence} results."
     webhook = DiscordWebhook(url=webhook_url, content=webhook_content)
     response = webhook.execute()
