@@ -7,6 +7,8 @@ from discord_webhook import DiscordWebhook
 import requests
 import time
 import math
+import json
+import os  # can be ignored if not publically hosting code
 
 
 def askIndex():
@@ -68,52 +70,83 @@ while bool_retry == 'on':
   # Set search index
   search_index = askIndex()
   ijn = math.ceil(search_index[1] / 100)  # ijn 1 = 100, 2 = 200... images
-  index_diffrence = search_index[1] - search_index[0]
 
-  # Create the URL for the search term
-  url = f'https://www.google.com/search?q={formatted_search_term}&tbm=isch&start={search_index[0]}&end={search_index[1]}&ijn={ijn}&safe={safeSearch}'
+  with open('image_urls.txt', 'w') as f:
+    pass  # an empty block to clear the file
 
-  # Send a GET request to the URL
-  response = requests.get(url)
+  start = search_index[0]
+  end = ((search_index[0] // 20) + 1) * 20
+  result_count = 0
+  while start < search_index[1]:
+    if end > search_index[1]:
+      end = search_index[1]
+    index_diffrence = end - start + 1
+    result_count += index_diffrence
 
-  # Create a BeautifulSoup object from the HTML content of the response
-  soup = BeautifulSoup(response.content, 'html.parser')
+    # Create the URL for the search term
+    url = f'https://www.google.com/search?q={formatted_search_term}&tbm=isch&start={start}&end={end}&ijn={ijn}&safe={safeSearch}'
 
-  # Find all the image tags on the page
-  img_tags = soup.find_all('img')
+    # Send a GET request to the URL
+    response = requests.get(url)
 
-  # Get the webhook URL from an environment variable + start message
-  webhook_url = '[put discord webhook url here]'
-  webhook_content = f"For '{search_term}' from index {search_index[0]} to {search_index[1]}, there are {len(img_tags)} results. Here are {index_diffrence} results.\n\n"
-  webhook = DiscordWebhook(url=webhook_url, content=webhook_content)
-  response = webhook.execute()
+    # Create a BeautifulSoup object from the HTML content of the response
+    soup = BeautifulSoup(response.content, 'html.parser')
 
-  # Loop through the image tags and send each image to the Discord webhook
-  for i, img in enumerate(img_tags):
-    # Stop looping once we reach the endIndex
-    if i >= index_diffrence:
-      break
+    # Find all the image tags on the page
+    img_tags = soup.find_all('img')
 
-    # Extract the URL of the image
-    img_url = img['src']
-
-    # Send the image to the Discord webhook
-    webhook_content = (img_url)
+    # Get the webhook URL from an environment variable + start message
+    webhook_url = os.environ.get('DISCORD_WEBHOOK_URL')
+    webhook_content = f"For '{search_term}' from index {start} to {end}, there are {len(img_tags)} results. Here are {index_diffrence} results."
     webhook = DiscordWebhook(url=webhook_url, content=webhook_content)
     response = webhook.execute()
 
-    # Delay before sending the next image
-    time.sleep(0.4)
-
-  # Write the list of URLs to a file
-  with open('image_urls.txt', 'w') as f:
-    f.write(
-      f"For '{search_term}' from index {search_index[0]} to {search_index[1]}, there are {len(img_tags)} results. Here are {index_diffrence} results.\n\n"
-    )
+    # Loop through the image tags and send each image to the Discord webhook
     for i, img in enumerate(img_tags):
       # Stop looping once we reach the endIndex
       if i >= index_diffrence:
         break
+
+      # Extract the URL of the image
       img_url = img['src']
-      f.write(img_url + '\n')
+
+      # Send the image to the Discord webhook
+      webhook_content = (img_url)
+      webhook = DiscordWebhook(url=webhook_url, content=webhook_content)
+      while True:
+        response = webhook.execute()
+        if response.status_code == 429:
+          print(f'Rate Limited: Retrying after 30 seconds...')
+          time.sleep(30)  # Wait a bit before retrying
+        else:
+          break
+
+      # Delay before sending the next image
+      time.sleep(.225)
+
+    # Write the list of URLs to a file
+    with open('image_urls.txt', 'a') as f:
+      f.write(
+        f"For '{search_term}' from index {start} to {end}, there are {len(img_tags)} results. Here are {index_diffrence} results.\n\n"
+      )
+      for i, img in enumerate(img_tags):
+        # Stop looping once we reach the endIndex
+        if i >= index_diffrence:
+          break
+        img_url = img['src']
+        f.write(img_url + '\n')
+      f.write('\n\n')
+    start += 21
+    end += 21
+    time.sleep(5)
+
+  webhook_content = f"Your overall search index was from {search_index[0]} to {search_index[1]}, there were {result_count} total results."
+  webhook = DiscordWebhook(url=webhook_url, content=webhook_content)
+  response = webhook.execute()
+
+  with open('image_urls.txt', 'a') as f:
+    f.write(
+      f'\n\nYour overall search index was from {search_index[0]} to {search_index[1]}, there were {result_count} total results.'
+    )
+
   bool_retry = askYN(input('Do you want to run the program again? (y/n): '))
