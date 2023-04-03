@@ -9,6 +9,6 @@ Instructions:
 
 2.) Download code and open editor.
 
-3.) Go to line 86, then input your Discord Webhook URL
+3.) Go to line 97, then input your Discord Webhook URL
 
 4.) Run the python code. Enjoy.
