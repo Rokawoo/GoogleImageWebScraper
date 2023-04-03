@@ -1,7 +1,8 @@
 # ImageWebScraperForDiscordWebhook-Local by Rokawoo https://rokawoo.neocities.org/
 Webscraper for google images.
 
-This Webscraper will both send messages to a discord webhook and write to a local file the most recent search. SafeSearch is on no matter what you choose.
+This Webscraper will both send messages to a discord webhook and write to a local file the most recent search.
+Running this program locally is most optimal for full functionality.
 
 Instructions:
 
