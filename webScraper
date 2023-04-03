@@ -39,7 +39,7 @@ def askIndex():
   return start, end
 
 
-def askSafemode(userAnswer):
+def askYN(userAnswer):
   '''Purpose: asks and verifies if user wants safe search
   @param: user's answer of yes or no
   @return: on or off to set safeSearch
@@ -56,61 +56,64 @@ def askSafemode(userAnswer):
         'Please enter a valid answer (yes or no): ').lower().strip()
 
 
-# Set the tag word you want to search for
-search_term = input('Enter your search tag(s): ')
-formatted_search_term = search_term.strip().lower().replace(' ', '+')
+bool_retry = 'on'
+while bool_retry == 'on':
+  # Set the tag word you want to search for
+  search_term = input('Enter your search tag(s): ')
+  formatted_search_term = search_term.strip().lower().replace(' ', '+')
 
-# Set safe mode
-safeSearch = askSafemode(input('Keep safe search? y/n: '))
+  # Set safe mode
+  safeSearch = askYN(input('Keep safe search? (y/n): '))
 
-# Set search index
-search_index = askIndex()
-ijn = math.ceil(search_index[1] / 100)  # ijn 1 = 100, 2 = 200... images
-index_diffrence = search_index[1] - search_index[0]
+  # Set search index
+  search_index = askIndex()
+  ijn = math.ceil(search_index[1] / 100)  # ijn 1 = 100, 2 = 200... images
+  index_diffrence = search_index[1] - search_index[0]
 
-# Create the URL for the search term
-url = f'https://www.google.com/search?q={formatted_search_term}&tbm=isch&start={search_index[0]}&end={search_index[1]}&ijn={ijn}&safe={safeSearch}'
+  # Create the URL for the search term
+  url = f'https://www.google.com/search?q={formatted_search_term}&tbm=isch&start={search_index[0]}&end={search_index[1]}&ijn={ijn}&safe={safeSearch}'
 
-# Send a GET request to the URL
-response = requests.get(url)
+  # Send a GET request to the URL
+  response = requests.get(url)
 
-# Create a BeautifulSoup object from the HTML content of the response
-soup = BeautifulSoup(response.content, 'html.parser')
+  # Create a BeautifulSoup object from the HTML content of the response
+  soup = BeautifulSoup(response.content, 'html.parser')
 
-# Find all the image tags on the page
-img_tags = soup.find_all('img')
+  # Find all the image tags on the page
+  img_tags = soup.find_all('img')
 
-# Get the webhook URL from an environment variable + start message
-webhook_url = '[INSERT WEBHOOK URL HERE]'
-webhook_content = f"For '{search_term}' from index {search_index[0]} to {search_index[1]}, there are {len(img_tags)} results. Here are {index_diffrence} results.\n\n"
-webhook = DiscordWebhook(url=webhook_url, content=webhook_content)
-response = webhook.execute()
-
-# Loop through the image tags and send each image to the Discord webhook
-for i, img in enumerate(img_tags):
-  # Stop looping once we reach the endIndex
-  if i >= index_diffrence:
-    break
-
-  # Extract the URL of the image
-  img_url = img['src']
-
-  # Send the image to the Discord webhook
-  webhook_content = (img_url)
+  # Get the webhook URL from an environment variable + start message
+  webhook_url = '[put discord webhook url here]'
+  webhook_content = f"For '{search_term}' from index {search_index[0]} to {search_index[1]}, there are {len(img_tags)} results. Here are {index_diffrence} results.\n\n"
   webhook = DiscordWebhook(url=webhook_url, content=webhook_content)
   response = webhook.execute()
 
-  # Delay before sending the next image
-  time.sleep(0.4)
-
-# Write the list of URLs to a file
-with open('image_urls.txt', 'w') as f:
-  f.write(
-    f"For '{search_term}' from index {search_index[0]} to {search_index[1]}, there are {len(img_tags)} results. Here are {index_diffrence} results.\n\n"
-  )
+  # Loop through the image tags and send each image to the Discord webhook
   for i, img in enumerate(img_tags):
     # Stop looping once we reach the endIndex
     if i >= index_diffrence:
       break
+
+    # Extract the URL of the image
     img_url = img['src']
-    f.write(img_url + '\n')
+
+    # Send the image to the Discord webhook
+    webhook_content = (img_url)
+    webhook = DiscordWebhook(url=webhook_url, content=webhook_content)
+    response = webhook.execute()
+
+    # Delay before sending the next image
+    time.sleep(0.4)
+
+  # Write the list of URLs to a file
+  with open('image_urls.txt', 'w') as f:
+    f.write(
+      f"For '{search_term}' from index {search_index[0]} to {search_index[1]}, there are {len(img_tags)} results. Here are {index_diffrence} results.\n\n"
+    )
+    for i, img in enumerate(img_tags):
+      # Stop looping once we reach the endIndex
+      if i >= index_diffrence:
+        break
+      img_url = img['src']
+      f.write(img_url + '\n')
+  bool_retry = askYN(input('Do you want to run the program again? (y/n): '))
