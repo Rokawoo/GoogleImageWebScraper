@@ -39,20 +39,20 @@ def askIndex():
   return start, end
 
 
-def askYN(userAnswer):
+def askYN(user_answer):
   '''Purpose: asks and verifies if user wants safe search
   @param: user's answer of yes or no
   @return: on or off to set safeSearch
   '''
 
-  userAnswer = userAnswer.lower().strip()
+  user_answer = user_answer.lower().strip()
   while True:
-    if userAnswer in ['yes', 'y']:
+    if user_answer in ['yes', 'y']:
       return 'on'
-    elif userAnswer in ['no', 'n']:
+    elif user_answer in ['no', 'n']:
       return 'off'
     else:
-      userAnswer = input(
+      user_answer = input(
         'Please enter a valid answer (yes or no): ').lower().strip()
 
 
@@ -63,7 +63,7 @@ while bool_retry == 'on':
   formatted_search_term = search_term.strip().lower().replace(' ', '+')
 
   # Set safe mode
-  safeSearch = askYN(input('Keep safe search? (y/n): '))
+  safe_search = askYN(input('Keep safe search? (y/n): '))
 
   # Set search index
   search_index = askIndex()
@@ -82,7 +82,7 @@ while bool_retry == 'on':
     result_count += index_diffrence
 
     # Create the URL for the search term
-    url = f'https://www.google.com/search?q={formatted_search_term}&tbm=isch&start={start}&end={end}&ijn={ijn}&safe={safeSearch}'
+    url = f'https://www.google.com/search?q={formatted_search_term}&tbm=isch&start={start}&end={end}&ijn={ijn}&safe={safe_search}'
 
     # Send a GET request to the URL
     response = requests.get(url)
@@ -138,13 +138,13 @@ while bool_retry == 'on':
     end += 21
     time.sleep(5)
 
-  webhook_content = f"Your overall search index was from {search_index[0]} to {search_index[1]}, there were {result_count} total results."
+  webhook_content = f"For '{search_term}' from overall index {search_index[0]} to {search_index[1]}, there were {result_count} total results. SafeSearch was {safe_search}."
   webhook = DiscordWebhook(url=webhook_url, content=webhook_content)
   response = webhook.execute()
-
+  
   with open('image_urls.txt', 'a') as f:
     f.write(
-      f'\n\nYour overall search index was from {search_index[0]} to {search_index[1]}, there were {result_count} total results.'
+      f"\n\nFor '{search_term}' from overall index {search_index[0]} to {search_index[1]}, there were {result_count} total results. SafeSearch was {safe_search}."
     )
 
   bool_retry = askYN(input('Do you want to run the program again? (y/n): '))
