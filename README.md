@@ -1,11 +1,11 @@
 # ImageWebScraperForDiscordWebhook-Local by Rokawoo https://rokawoo.neocities.org/
 Webscraper for google images.
 
-This Webscraper will both send messages to a discord webhook and write to a local file the most recent search.
+This Webscraper will both send messages to a discord webhook and write to a local file the most recent search. SafeSearch is on no matter what you choose.
 
 Instructions:
 
-1.) Import Libraries, enter 'pip install beautifulsoup4 discord-webhook requests' in shell or terminal.
+1.) Import Libraries, enter 'pip install beautifulsoup4 discord-webhook requests' in shell/terminal.
 
 2.) Download code and open editor.
 
